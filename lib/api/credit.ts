@@ -4,14 +4,14 @@ import { CreditResponse, CreditChargeRequest, CreditChargeResponse } from '../ty
 export const creditApi = {
   // 크레딧 조회
   getCredit: async (): Promise<CreditResponse> => {
-    const response = await axiosInstance.get<CreditResponse>('/api/v1/members/me/credit');
+    const response = await axiosInstance.get<CreditResponse>('/main/api/v1/members/me/credit');
     return response.data;
   },
 
   // 크레딧 충전
   chargeCredit: async (data: CreditChargeRequest): Promise<CreditChargeResponse> => {
     const response = await axiosInstance.post<CreditChargeResponse>(
-      '/api/v1/members/me/credit/charge',
+      '/main/api/v1/members/me/credit/charge',
       data
     );
     return response.data;

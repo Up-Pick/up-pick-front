@@ -27,7 +27,7 @@ function ProductsContent() {
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [page, setPage] = useState(0);
-  const [sortBy, setSortBy] = useState<'CREATED_AT' | 'END_AT' | 'CURRENT_BID'>('CREATED_AT');
+  const [sortBy, setSortBy] = useState<'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID'>('REGISTERED_AT_DESC');
   const [categoryId, setCategoryId] = useState<number | undefined>();
 
   // 카테고리 목록 조회
@@ -112,7 +112,7 @@ function ProductsContent() {
                 }}
                 label="정렬"
               >
-                <MenuItem value="CREATED_AT">최신순</MenuItem>
+                <MenuItem value="REGISTERED_AT_DESC">최신순</MenuItem>
                 <MenuItem value="END_AT">마감임박순</MenuItem>
                 <MenuItem value="CURRENT_BID">가격순</MenuItem>
               </Select>

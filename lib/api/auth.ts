@@ -3,11 +3,11 @@ import { SignupRequest, LoginRequest, LoginResponse } from '../types/auth';
 
 export const authApi = {
   signup: async (data: SignupRequest): Promise<void> => {
-    await axiosInstance.post('/api/v1/members/signup', data);
+    await axiosInstance.post('/main/api/v1/members/signup', data);
   },
 
   login: async (data: LoginRequest): Promise<LoginResponse> => {
-    const response = await axiosInstance.post<LoginResponse>('/api/v1/members/login', data);
+    const response = await axiosInstance.post<LoginResponse>('/main/api/v1/members/login', data);
     return response.data;
   },
 

@@ -29,7 +29,7 @@ export default function HomePage() {
       productsApi.searchProducts({
         page: 0,
         size: 6,
-        sortBy: 'CREATED_AT',
+        sortBy: 'REGISTERED_AT_DESC',
       }),
   });
 
