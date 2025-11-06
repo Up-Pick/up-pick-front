@@ -76,9 +76,9 @@ export default function HomePage() {
               🔥 인기 검색어 TOP 10
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 2 }}>
-              {hotKeywords.map((keyword) => (
+              {hotKeywords.map((keyword, idx) => (
                 <Chip
-                  key={keyword.rankNo}
+                  key={keyword.rankNo != null ? `${keyword.rankNo}-${keyword.keyword}` : `hot-${idx}`}
                   label={`${keyword.rankNo}. ${keyword.keyword}`}
                   onClick={() =>
                     router.push(`/products?keyword=${encodeURIComponent(keyword.keyword)}`)
@@ -97,11 +97,11 @@ export default function HomePage() {
           최신 경매 상품
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
-          {productsData?.contents?.map((product) => (
+          {productsData?.contents?.map((product, idx) => (
             <Card
-              key={product.productId}
+              key={product.id ?? `product-${idx}`}
               sx={{ cursor: 'pointer', height: '100%' }}
-              onClick={() => router.push(`/products/${product.productId}`)}
+              onClick={() => router.push(`/products/${product.id}`)}
             >
               <CardMedia
                 component="img"
@@ -114,7 +114,7 @@ export default function HomePage() {
                   {product.name}
                 </Typography>
                 <Typography variant="h5" color="primary" gutterBottom>
-                  {product.currentBid} 원
+                  {product.currentBid?.toLocaleString()} 원
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   마감: {new Date(product.endAt).toLocaleString('ko-KR')}

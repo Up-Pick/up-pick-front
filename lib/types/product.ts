@@ -8,12 +8,18 @@ export interface Product {
   productId: number;
   name: string;
   description: string;
-  category: Category;
   imageUrl: string;
   sellerId: number;
   sellerNickname: string;
+  sellerName: string;
   createdAt: string;
-  auction: AuctionInfo;
+  registeredAt: string;
+  viewCount: number;
+  category: string;
+  minPrice: number;
+  currentBid: number | null;
+  endAt: string;
+  auction?: AuctionInfo; // 기존 호환성을 위해 유지
 }
 
 export interface AuctionInfo {
@@ -26,10 +32,11 @@ export interface AuctionInfo {
 }
 
 export interface ProductSimpleInfo {
-  productId: number;
+  id: number;
   name: string;
   imageUrl: string;
-  currentBid: number;
+  currentBid?: number;
+  minBidPrice: number;
   endAt: string;
 }
 

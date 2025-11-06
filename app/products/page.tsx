@@ -133,9 +133,9 @@ function ProductsContent() {
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
               {productsData?.contents.map((product) => (
                 <Card
-                  key={product.productId}
+                  key={product.id}
                   sx={{ cursor: 'pointer', height: '100%' }}
-                  onClick={() => router.push(`/products/${product.productId}`)}
+                  onClick={() => router.push(`/products/${product.id}`)}
                 >
                   <CardMedia
                     component="img"
@@ -147,9 +147,15 @@ function ProductsContent() {
                     <Typography variant="h6" gutterBottom noWrap>
                       {product.name}
                     </Typography>
-                    <Typography variant="h5" color="primary" gutterBottom>
-                      {product.currentBid.toLocaleString()} 원
-                    </Typography>
+                    {product.currentBid ? (
+                      <Typography variant="h5" color="primary" gutterBottom fontWeight="bold">
+                        현재 입찰가: {product.currentBid.toLocaleString()} 원
+                      </Typography>
+                    ) : (
+                      <Typography variant="body1" color="text.secondary" gutterBottom>
+                        최소 입찰가: {product.minBidPrice.toLocaleString()} 원
+                      </Typography>
+                    )}
                     <Typography variant="body2" color="text.secondary">
                       마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
                     </Typography>

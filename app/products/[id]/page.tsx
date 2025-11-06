@@ -68,8 +68,8 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (product && amount <= product.auction.currentBid) {
-      setError(`현재가(${product.auction.currentBid.toLocaleString()}원)보다 높은 금액을 입력해주세요.`);
+    if (product && amount <= (product.currentBid || product.minPrice)) {
+      setError(`현재가(${(product.currentBid || product.minPrice).toLocaleString()}원)보다 높은 금액을 입력해주세요.`);
       return;
     }
 
@@ -98,8 +98,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const isAuctionActive = product.auction.status === 'IN_PROGRESS';
-  const auctionEndDate = new Date(product.auction.endAt);
+  const auctionEndDate = new Date(product.endAt);
   const isExpired = auctionEndDate < new Date();
 
   return (
@@ -132,19 +131,16 @@ export default function ProductDetailPage() {
 
               <Box sx={{ mb: 2 }}>
                 <Chip
-                  label={`${product.category.bigCategory} - ${product.category.smallCategory}`}
+                  label={`${product.categoryName}`}
                   color="primary"
                   variant="outlined"
                   sx={{ mr: 1 }}
                 />
-                {product.auction.status === 'IN_PROGRESS' && (
+                {!isExpired && (
                   <Chip label="진행중" color="success" />
                 )}
-                {product.auction.status === 'FINISHED' && (
-                  <Chip label="낙찰완료" color="info" />
-                )}
-                {product.auction.status === 'EXPIRED' && (
-                  <Chip label="유찰" color="default" />
+                {isExpired && (
+                  <Chip label="마감" color="default" />
                 )}
               </Box>
 
@@ -154,7 +150,7 @@ export default function ProductDetailPage() {
                 <Typography variant="body2" color="text.secondary">
                   판매자
                 </Typography>
-                <Typography variant="h6">{product.sellerNickname}</Typography>
+                <Typography variant="h6">{product.sellerName}</Typography>
               </Box>
 
               <Box sx={{ mb: 2 }}>
@@ -162,7 +158,7 @@ export default function ProductDetailPage() {
                   시작가
                 </Typography>
                 <Typography variant="h6">
-                  {product.auction.startBid.toLocaleString()} 원
+                  {product.minPrice.toLocaleString()} 원
                 </Typography>
               </Box>
 
@@ -171,18 +167,11 @@ export default function ProductDetailPage() {
                   현재가
                 </Typography>
                 <Typography variant="h4" color="primary">
-                  {product.auction.currentBid.toLocaleString()} 원
+                  {(product.currentBid || product.minPrice).toLocaleString()} 원
                 </Typography>
               </Box>
 
-              {product.auction.winnerNickname && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    낙찰자
-                  </Typography>
-                  <Typography variant="h6">{product.auction.winnerNickname}</Typography>
-                </Box>
-              )}
+              {/* 낙찰자 정보는 API에서 제공되지 않음 */}
 
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body2" color="text.secondary">
@@ -196,7 +185,7 @@ export default function ProductDetailPage() {
               <Divider sx={{ my: 2 }} />
 
               {/* 입찰 폼 */}
-              {isAuctionActive && !isExpired && (
+              {!isExpired && (
                 <Box>
                   <Typography variant="h6" gutterBottom>
                     입찰하기
@@ -220,7 +209,7 @@ export default function ProductDetailPage() {
                     label="입찰 금액"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={`${(product.auction.currentBid + 1000).toLocaleString()}원 이상`}
+                    placeholder={`${((product.currentBid || product.minPrice) + 1000).toLocaleString()}원 이상`}
                     sx={{ mb: 2 }}
                   />
 
@@ -236,7 +225,7 @@ export default function ProductDetailPage() {
                 </Box>
               )}
 
-              {!isAuctionActive && (
+              {isExpired && (
                 <Alert severity="info">경매가 종료되었습니다.</Alert>
               )}
             </Paper>

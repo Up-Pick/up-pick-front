@@ -85,8 +85,9 @@ export default function MyPage() {
       setError('');
       queryClient.invalidateQueries({ queryKey: ['credit'] });
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.message || '충전에 실패했습니다.');
+    onError: (err: unknown) => {
+      const errorMessage = (err as any).response?.data?.message || '충전에 실패했습니다.';
+      setError(errorMessage);
     },
   });
 
@@ -112,14 +113,14 @@ export default function MyPage() {
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
         {products.contents.map((product: any) => (
           <Card
-            key={product.productId}
+            key={product.id}
             sx={{ cursor: 'pointer' }}
-            onClick={() => router.push(`/products/${product.productId}`)}
+            onClick={() => router.push(`/products/${product.id}`)}
           >
             <CardMedia
               component="img"
               height="180"
-              image={product.imageUrl || '/placeholder.png'}
+              image={product.image || '/placeholder.png'}
               alt={product.name}
             />
             <CardContent>
@@ -127,7 +128,7 @@ export default function MyPage() {
                 {product.name}
               </Typography>
               <Typography variant="h6" color="primary">
-                {product.currentBid.toLocaleString()} 원
+                {product.currentBid ? `${product.currentBid.toLocaleString()} 원` : '입찰 없음'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
@@ -155,7 +156,7 @@ export default function MyPage() {
                 내 크레딧
               </Typography>
               <Typography variant="h3" color="primary">
-                💰 {creditData?.credit.toLocaleString() || 0} 원
+                💰 {creditData?.currentCredit.toLocaleString() || 0} 원
               </Typography>
             </Box>
             <Box>

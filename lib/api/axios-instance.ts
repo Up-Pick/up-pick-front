@@ -14,7 +14,8 @@ axiosInstance.interceptors.request.use(
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // 토큰이 이미 'Bearer '로 시작하는지 확인
+        config.headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       }
     }
     return config;
@@ -32,6 +33,7 @@ axiosInstance.interceptors.response.use(
       // 토큰 만료 또는 인증 실패
       if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken');
+        alert('인증이 만료되었습니다. 다시 로그인해주세요.');
         window.location.href = '/login';
       }
     }

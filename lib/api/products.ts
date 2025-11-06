@@ -40,14 +40,21 @@ export const productsApi = {
   // 상품 등록
   registerProduct: async (data: ProductRegisterRequest): Promise<void> => {
     const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('description', data.description);
-    formData.append('categoryId', data.categoryId.toString());
-    formData.append('startBid', data.startBid.toString());
-    formData.append('endAt', data.endAt);
+    
+    // 백엔드 @RequestPart("product")에 맞게 상품 정보를 JSON으로 추가
+    const productData = {
+      name: data.name,
+      description: data.description,
+      categoryId: data.categoryId,
+      startBid: data.startBid,
+      endAt: data.endAt,
+    };
+    formData.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }));
+    
+    // 백엔드 @RequestPart("image")에 맞게 이미지 추가
     formData.append('image', data.image);
 
-    await axiosInstance.post('/auciton/api/v1/products', formData, {
+    await axiosInstance.post('/auction/api/v1/products', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

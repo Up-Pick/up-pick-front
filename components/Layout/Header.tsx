@@ -103,7 +103,7 @@ export default function Header() {
               <>
                 {/* 크레딧 표시 */}
                 <Typography variant="body2" sx={{ mr: 2 }}>
-                  💰 {creditData?.credit.toLocaleString() || 0} 원
+                  💰 {creditData?.currentCredit.toLocaleString() || 0} 원
                 </Typography>
 
                 {/* 알림 */}
