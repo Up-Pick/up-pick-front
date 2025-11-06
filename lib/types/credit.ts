@@ -1,5 +1,5 @@
 export interface CreditResponse {
-  credit: number;
+  currentCredit: number;
 }
 
 export interface CreditChargeRequest {
