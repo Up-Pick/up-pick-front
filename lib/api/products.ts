@@ -7,31 +7,34 @@ import {
   StandardPageResponse,
   Category,
 } from '../types/product';
+import { ApiResponse } from '../types/api';
 
 export const productsApi = {
   // 상품 검색
   searchProducts: async (
     params: SearchProductRequest
   ): Promise<StandardPageResponse<ProductSimpleInfo>> => {
-    const response = await axiosInstance.post<StandardPageResponse<ProductSimpleInfo>>(
+    const response = await axiosInstance.post<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/search',
       params
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 상품 상세 조회
   getProduct: async (productId: number): Promise<Product> => {
-    const response = await axiosInstance.get<Product>(`/auction/api/v1/products/${productId}`);
-    return response.data;
+    const response = await axiosInstance.get<ApiResponse<Product>>(
+      `/auction/api/v1/products/${productId}`
+    );
+    return response.data.data;
   },
 
   // 상품 간단 정보 조회
   getProductSimpleInfo: async (productId: number): Promise<ProductSimpleInfo> => {
-    const response = await axiosInstance.get<ProductSimpleInfo>(
+    const response = await axiosInstance.get<ApiResponse<ProductSimpleInfo>>(
       `/auction/api/v1/products/${productId}/simple-info`
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 상품 등록
@@ -53,43 +56,43 @@ export const productsApi = {
 
   // 내 판매중 상품
   getMySoldProducts: async (page: number = 0, size: number = 10): Promise<StandardPageResponse<ProductSimpleInfo>> => {
-    const response = await axiosInstance.get<StandardPageResponse<ProductSimpleInfo>>(
+    const response = await axiosInstance.get<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/sold/me',
       { params: { page, size } }
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 내 판매완료 상품
   getMyPurchasedProducts: async (page: number = 0, size: number = 10): Promise<StandardPageResponse<ProductSimpleInfo>> => {
-    const response = await axiosInstance.get<StandardPageResponse<ProductSimpleInfo>>(
+    const response = await axiosInstance.get<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/purchased/me',
       { params: { page, size } }
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 내 입찰중 상품
   getMyBiddingProducts: async (page: number = 0, size: number = 10): Promise<StandardPageResponse<ProductSimpleInfo>> => {
-    const response = await axiosInstance.get<StandardPageResponse<ProductSimpleInfo>>(
+    const response = await axiosInstance.get<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/bidding/me',
       { params: { page, size } }
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 내 판매중 상품
   getMySellingProducts: async (page: number = 0, size: number = 10): Promise<StandardPageResponse<ProductSimpleInfo>> => {
-    const response = await axiosInstance.get<StandardPageResponse<ProductSimpleInfo>>(
+    const response = await axiosInstance.get<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/selling/me',
       { params: { page, size } }
     );
-    return response.data;
+    return response.data.data;
   },
 
   // 카테고리 목록
   getCategories: async (): Promise<Category[]> => {
-    const response = await axiosInstance.get<Category[]>('/auction/api/v1/categories');
-    return response.data;
+    const response = await axiosInstance.get<ApiResponse<Category[]>>('/auction/api/v1/categories');
+    return response.data.data;
   },
 };

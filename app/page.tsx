@@ -97,7 +97,7 @@ export default function HomePage() {
           최신 경매 상품
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
-          {productsData?.contents.map((product) => (
+          {productsData?.contents?.map((product) => (
             <Card
               key={product.productId}
               sx={{ cursor: 'pointer', height: '100%' }}
@@ -114,7 +114,7 @@ export default function HomePage() {
                   {product.name}
                 </Typography>
                 <Typography variant="h5" color="primary" gutterBottom>
-                  {product.currentBid.toLocaleString()} 원
+                  {product.currentBid} 원
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   마감: {new Date(product.endAt).toLocaleString('ko-KR')}
