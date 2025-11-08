@@ -67,7 +67,7 @@ export const productsApi = {
       '/auction/api/v1/products/sold/me',
       { params: { page, size } }
     );
-    return response.data.data;
+    return response.data as unknown as StandardPageResponse<ProductSimpleInfo>;
   },
 
   // 내 판매완료 상품
@@ -76,7 +76,7 @@ export const productsApi = {
       '/auction/api/v1/products/purchased/me',
       { params: { page, size } }
     );
-    return response.data.data;
+     return response.data as unknown as StandardPageResponse<ProductSimpleInfo>;
   },
 
   // 내 입찰중 상품
@@ -85,7 +85,7 @@ export const productsApi = {
       '/auction/api/v1/products/bidding/me',
       { params: { page, size } }
     );
-    return response.data.data;
+     return response.data as unknown as StandardPageResponse<ProductSimpleInfo>;
   },
 
   // 내 판매중 상품
@@ -94,7 +94,7 @@ export const productsApi = {
       '/auction/api/v1/products/selling/me',
       { params: { page, size } }
     );
-    return response.data.data;
+     return response.data as unknown as StandardPageResponse<ProductSimpleInfo>;
   },
 
   // 카테고리 목록
