@@ -51,35 +51,42 @@ export default function NotificationsPage() {
         <Paper elevation={2}>
           {notificationsData && notificationsData.notifications.length > 0 ? (
             <List>
-              {notificationsData.notifications.map((notification, index) => (
-                <React.Fragment key={notification.notificationId}>
-                  <ListItem alignItems="flex-start">
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                          <Chip
-                            label={notification.type === 'TRADE' ? '거래' : '입찰'}
-                            color={notification.type === 'TRADE' ? 'success' : 'primary'}
-                            size="small"
-                          />
-                          <Typography variant="h6">{notification.title}</Typography>
-                        </Box>
-                      }
-                      secondary={
-                        <>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
-                            {notification.message}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(notification.notifiedAt).toLocaleString('ko-KR')}
-                          </Typography>
-                        </>
-                      }
-                    />
-                  </ListItem>
-                  {index < notificationsData.notifications.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
+              {notificationsData.notifications.map((notification, index) => {
+                const keyBase = notification.notificationId ?? `notif-${index}`;
+                return (
+                  <React.Fragment key={keyBase}>
+                    <ListItem key={`li-${keyBase}`} alignItems="flex-start">
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <Chip
+                              label={notification.type === 'TRADE' ? '거래' : '입찰'}
+                              color={notification.type === 'TRADE' ? 'success' : 'primary'}
+                              size="small"
+                            />
+                            <Typography variant="h6" component="div" sx={{ margin: 0 }}>
+                              {notification.title}
+                            </Typography>
+                          </Box>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography variant="body1" component="div" sx={{ mb: 1 }}>
+                              {notification.message}
+                            </Typography>
+                            <Typography variant="caption" component="div" color="text.secondary">
+                              {new Date(notification.notifiedAt).toLocaleString('ko-KR')}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                    {index < notificationsData.notifications.length - 1 && (
+                      <Divider key={`div-${keyBase}`} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </List>
           ) : (
             <Box sx={{ textAlign: 'center', py: 8 }}>
