@@ -40,11 +40,13 @@ function ProductsContent() {
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', keyword, page, sortBy, categoryId],
     queryFn: () => {
+      // Map UI sort keys to backend enum values
+      const apiSortBy = sortBy === 'END_AT' ? 'END_AT_DESC' : sortBy === 'CURRENT_BID' ? 'CURRENT_BID_DESC' : 'REGISTERED_AT_DESC';
       const params = {
         keyword: keyword || undefined,
         page,
         size: 12,
-        sortBy,
+        sortBy: apiSortBy,
         categoryId,
       };
       console.debug('searchProducts called with params', params);
@@ -143,21 +145,32 @@ function ProductsContent() {
                   <CardMedia
                     component="img"
                     height="180"
-                    image={product.imageUrl || '/placeholder.png'}
+                    // backend returns `image` (S3 URL)
+                    image={product.image || product.imageUrl || '/placeholder.png'}
                     alt={product.name}
                   />
                   <CardContent>
                     <Typography variant="h6" gutterBottom noWrap>
                       {product.name}
                     </Typography>
-                    {product.currentBid ? (
-                      <Typography variant="h5" color="primary" gutterBottom fontWeight="bold">
-                        현재 입찰가: {product.currentBid.toLocaleString()} 원
-                      </Typography>
+                    {product.currentBidPrice != null ? (
+                      <>
+                        <Typography variant="h6" color="primary" gutterBottom>
+                          현재 입찰가: {product.currentBidPrice.toLocaleString()} 원
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
+                        </Typography>
+                      </>
                     ) : (
-                      <Typography variant="body1" color="text.secondary" gutterBottom>
-                        최소 입찰가: {product.minBidPrice.toLocaleString()} 원
-                      </Typography>
+                      <>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          입찰 없음
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
+                        </Typography>
+                      </>
                     )}
                     <Typography variant="body2" color="text.secondary">
                       마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
