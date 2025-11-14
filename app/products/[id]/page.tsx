@@ -38,6 +38,23 @@ export default function ProductDetailPage() {
     enabled: !!productId,
   });
 
+  // Helper: treat backend ISO (no timezone) as UTC; convert to Date or local string
+  const parseUtcToDate = (iso?: string): Date => {
+    if (!iso) return new Date(NaN);
+    const normalized = /[zZ]|[+-]\d{2}:?\d{2}/.test(iso) ? iso : `${iso}Z`;
+    return new Date(normalized);
+  };
+
+  const parseUtcToLocalString = (iso?: string) => {
+    if (!iso) return '-';
+    try {
+      const d = parseUtcToDate(iso);
+      return d.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return iso;
+    }
+  };
+
   // 입찰 Mutation - accept auctionId explicitly to avoid relying on product closure
   const bidMutation = useMutation({
     mutationFn: async (payload: { auctionId: number; biddingPrice: number }) => {
@@ -121,8 +138,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  const auctionEndDate = new Date(product.endAt);
-  const isExpired = auctionEndDate < new Date();
+  // 기존 auctionEndDate 계산을 UTC-aware로 변경
+  const auctionEndDate = parseUtcToDate(product.endAt);
+  const isExpired = auctionEndDate.getTime() <= Date.now();
 
   return (
     <>
@@ -201,7 +219,7 @@ export default function ProductDetailPage() {
                   마감일시
                 </Typography>
                 <Typography variant="h6" color={isExpired ? 'error' : 'inherit'}>
-                  {auctionEndDate.toLocaleString('ko-KR')}
+                  {parseUtcToLocalString(product.endAt)}
                 </Typography>
               </Box>
 

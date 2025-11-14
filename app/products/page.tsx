@@ -38,6 +38,15 @@ function ProductsContent() {
     queryFn: productsApi.getCategories,
   });
 
+  // 기본 카테고리 설정: '전자제품 - 태블릿'을 우선으로, 없으면 첫 항목
+  React.useEffect(() => {
+    if (categories && categories.length > 0 && categoryId == null) {
+      const match = categories.find((c) => /전자/.test(c.bigCategory) && /태블릿/.test(c.smallCategory));
+      const defaultCat = match || categories[0];
+      setCategoryId(defaultCat.categoryId);
+    }
+  }, [categories]);
+
   // 상품 검색
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', keyword, page, sortBy, categoryId],
@@ -67,6 +76,18 @@ function ProductsContent() {
     setPage(0);
   };
 
+  const parseUtcToLocalString = (iso?: string) => {
+    if (!iso) return '-';
+    try {
+      // If iso already contains timezone info, use it. Otherwise treat as UTC by appending 'Z'.
+      const normalized = /[zZ]|[+-]\d{2}:?\d{2}/.test(iso) ? iso : `${iso}Z`;
+      const d = new Date(normalized);
+      return d.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return iso;
+    }
+  };
+
   return (
     <>
       <Header />
@@ -94,14 +115,13 @@ function ProductsContent() {
             <FormControl fullWidth sx={{ flex: { md: 1 } }}>
               <InputLabel>카테고리</InputLabel>
               <Select
-                value={categoryId || ''}
+                value={categoryId ?? ''}
                 onChange={(e) => {
                   setCategoryId(e.target.value ? Number(e.target.value) : undefined);
                   setPage(0);
                 }}
                 label="카테고리"
               >
-                <MenuItem value="">전체</MenuItem>
                 {categories?.map((cat) => (
                   <MenuItem key={cat.categoryId} value={cat.categoryId}>
                     {cat.bigCategory} - {cat.smallCategory}
@@ -120,7 +140,7 @@ function ProductsContent() {
                 label="정렬"
               >
                 <MenuItem value="REGISTERED_AT_DESC">최신순</MenuItem>
-                <MenuItem value="END_AT">마감임박순</MenuItem>
+                <MenuItem value="END_AT">마감늦은순</MenuItem>
                 <MenuItem value="CURRENT_BID">가격순</MenuItem>
               </Select>
             </FormControl>
@@ -210,7 +230,7 @@ function ProductsContent() {
                       )}
                       <Box sx={{ mt: 'auto' }}>
                         <Typography variant="caption" color="text.secondary">
-                          마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
+                          마감: {parseUtcToLocalString(product.endAt)}
                         </Typography>
                       </Box>
                     </CardContent>
