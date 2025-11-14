@@ -16,6 +16,8 @@ import {
   InputLabel,
   Button,
   Grid,
+  Chip,
+  Stack,
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -136,48 +138,85 @@ function ProductsContent() {
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
-              {productsData?.contents.map((product) => (
-                <Card
-                  key={product.id}
-                  sx={{ cursor: 'pointer', height: '100%' }}
-                  onClick={() => router.push(`/products/${product.id}`)}
-                >
-                  <CardMedia
-                    component="img"
-                    height="180"
-                    // backend returns `image` (S3 URL)
-                    image={product.image || product.imageUrl || '/placeholder.png'}
-                    alt={product.name}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom noWrap>
-                      {product.name}
-                    </Typography>
-                    {product.currentBidPrice != null ? (
-                      <>
-                        <Typography variant="h6" color="primary" gutterBottom>
-                          현재 입찰가: {product.currentBidPrice.toLocaleString()} 원
+              {productsData?.contents.map((product) => {
+                const rawCurrentBid =
+                  // prefer backend search field
+                  (product as any).currentBidPrice ??
+                  // fallback to other possible field names
+                  (product as any).currentBid ??
+                  (product as any).auction?.currentBidPrice ??
+                  (product as any).auction?.currentBid ??
+                  null;
+
+                const displayCurrentBid = (() => {
+                  if (rawCurrentBid == null) return null;
+                  const n = typeof rawCurrentBid === 'number' ? rawCurrentBid : Number(rawCurrentBid);
+                  return Number.isFinite(n) ? n : null;
+                })();
+
+                // debug: trace raw vs normalized current bid for this product
+                if (typeof window !== 'undefined') {
+                  // eslint-disable-next-line no-console
+                  console.debug('product current bid debug', { id: product.id, rawCurrentBid, displayCurrentBid });
+                }
+
+                return (
+                  <Card
+                    key={product.id}
+                    sx={{
+                      cursor: 'pointer',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 200ms ease, box-shadow 200ms ease',
+                      '&:hover': {
+                        transform: 'translateY(-6px)',
+                        boxShadow: (theme) => theme.shadows[6],
+                      },
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}
+                    onClick={() => router.push(`/products/${product.id}`)}
+                  >
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        // backend returns `image` (S3 URL)
+                        image={product.image || product.imageUrl || '/placeholder.png'}
+                        alt={product.name}
+                        sx={{ width: '100%', height: 180, objectFit: 'cover' }}
+                      />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="subtitle1" gutterBottom noWrap sx={{ fontWeight: 600 }}>
+                        {product.name}
+                      </Typography>
+                      {typeof displayCurrentBid === 'number' ? (
+                        <>
+                          <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700 }}>
+                            {displayCurrentBid.toLocaleString()} 원
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography variant="body2" color="text.secondary">
+                            시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
+                          </Typography>
+                        </>
+                      )}
+                      <Box sx={{ mt: 'auto' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
-                        </Typography>
-                      </>
-                    ) : (
-                      <>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                          입찰 없음
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          시작가: {product.minBidPrice?.toLocaleString() ?? '-'} 원
-                        </Typography>
-                      </>
-                    )}
-                    <Typography variant="body2" color="text.secondary">
-                      마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </Box>
 
             {productsData && productsData.contents.length === 0 && (
