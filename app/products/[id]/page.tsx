@@ -151,7 +151,7 @@ export default function ProductDetailPage() {
           <Box sx={{ flex: 1 }}>
             <Box
               component="img"
-              src={product.imageUrl || '/placeholder.png'}
+              src={(product as any).image || product.imageUrl || '/placeholder.png'}
               alt={product.name}
               sx={{
                 width: '100%',

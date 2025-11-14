@@ -28,6 +28,7 @@ function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
+  const [searchKeyword, setSearchKeyword] = useState(searchParams.get('keyword') || '');
   const [page, setPage] = useState(0);
   const [sortBy, setSortBy] = useState<'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID'>('REGISTERED_AT_DESC');
   const [categoryId, setCategoryId] = useState<number | undefined>();
@@ -49,12 +50,12 @@ function ProductsContent() {
 
   // 상품 검색
   const { data: productsData, isLoading } = useQuery({
-    queryKey: ['products', keyword, page, sortBy, categoryId],
+    queryKey: ['products', searchKeyword, page, sortBy, categoryId],
     queryFn: () => {
       // Map UI sort keys to backend enum values
       const apiSortBy = sortBy === 'END_AT' ? 'END_AT_DESC' : sortBy === 'CURRENT_BID' ? 'CURRENT_BID_DESC' : 'REGISTERED_AT_DESC';
       const params = {
-        keyword: keyword || undefined,
+        keyword: searchKeyword || undefined,
         page,
         size: 12,
         sortBy: apiSortBy,
@@ -69,10 +70,12 @@ function ProductsContent() {
     const keywordParam = searchParams.get('keyword');
     if (keywordParam) {
       setKeyword(keywordParam);
+      setSearchKeyword(keywordParam);
     }
   }, [searchParams]);
 
   const handleSearch = () => {
+    setSearchKeyword(keyword);
     setPage(0);
   };
 
@@ -104,8 +107,9 @@ function ProductsContent() {
               label="검색"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  e.preventDefault();
                   handleSearch();
                 }
               }}
