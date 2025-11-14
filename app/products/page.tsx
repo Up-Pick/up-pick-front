@@ -39,14 +39,17 @@ function ProductsContent() {
   // 상품 검색
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', keyword, page, sortBy, categoryId],
-    queryFn: () =>
-      productsApi.searchProducts({
+    queryFn: () => {
+      const params = {
         keyword: keyword || undefined,
         page,
         size: 12,
         sortBy,
         categoryId,
-      }),
+      };
+      console.debug('searchProducts called with params', params);
+      return productsApi.searchProducts(params);
+    },
   });
 
   useEffect(() => {

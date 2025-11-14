@@ -38,11 +38,16 @@ export default function ProductDetailPage() {
     enabled: !!productId,
   });
 
-  // 입찰 Mutation
+  // 입찰 Mutation - accept auctionId explicitly to avoid relying on product closure
   const bidMutation = useMutation({
-    mutationFn: (biddingPrice: number) =>
-      auctionsApi.placeBid(product!.auction.auctionId, { biddingPrice }),
+    mutationFn: async (payload: { auctionId: number; biddingPrice: number }) => {
+      const { auctionId, biddingPrice } = payload;
+      console.debug('bidMutation.mutationFn called', { biddingPrice, auctionId });
+      if (!auctionId) throw new Error('auctionId is missing');
+      return auctionsApi.placeBid(auctionId, { biddingPrice });
+    },
     onSuccess: () => {
+      console.debug('bidMutation onSuccess');
       setSuccess('입찰이 완료되었습니다!');
       setError('');
       setBidAmount('');
@@ -51,12 +56,14 @@ export default function ProductDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['credit'] });
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || '입찰에 실패했습니다.');
+      console.error('bidMutation onError', err);
+      setError(err.response?.data?.message || err.message || '입찰에 실패했습니다.');
       setSuccess('');
     },
   });
 
   const handleBid = () => {
+    console.debug('handleBid called', { isAuthenticated, productExists: !!product, auctionRaw: product?.auction, bidAmount });
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -73,7 +80,23 @@ export default function ProductDetailPage() {
       return;
     }
 
-    bidMutation.mutate(amount);
+    // DEBUG: log full product object to inspect shape
+    console.debug('product payload', product);
+
+    // resolve auctionId: try several possible shapes returned by backend
+    let resolvedAuctionId = (product as any)?.auction?.auctionId
+      ?? (product as any)?.auctionId
+      ?? (product as any)?.auction?.id
+      ?? (product as any)?.auction_id
+      ?? undefined;
+    // Fallback to productId if backend expects productId for auction endpoint
+    if (!resolvedAuctionId) {
+      console.debug('auctionId not found on product, falling back to productId', { productId });
+      resolvedAuctionId = productId;
+    }
+
+    console.debug('mutating bid', { amount, resolvedAuctionId });
+    bidMutation.mutate({ auctionId: resolvedAuctionId, biddingPrice: amount });
   };
 
   if (isLoading) {
