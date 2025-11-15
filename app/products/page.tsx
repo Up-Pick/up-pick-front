@@ -15,9 +15,6 @@ import {
   FormControl,
   InputLabel,
   Button,
-  Grid,
-  Chip,
-  Stack,
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -46,32 +43,29 @@ function ProductsContent() {
       const defaultCat = match || categories[0];
       setCategoryId(defaultCat.categoryId);
     }
-  }, [categories]);
+  }, [categories, categoryId]);
 
   // 상품 검색
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', searchKeyword, page, sortBy, categoryId],
     queryFn: () => {
-      // Map UI sort keys to backend enum values
-      const apiSortBy = sortBy === 'END_AT' ? 'END_AT_DESC' : sortBy === 'CURRENT_BID' ? 'CURRENT_BID_DESC' : 'REGISTERED_AT_DESC';
       const params = {
         keyword: searchKeyword || undefined,
         page,
         size: 12,
-        sortBy: apiSortBy,
+        sortBy: sortBy as 'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID',
         categoryId,
       };
-      console.debug('searchProducts called with params', params);
       return productsApi.searchProducts(params);
     },
   });
 
   useEffect(() => {
     const keywordParam = searchParams.get('keyword');
-    if (keywordParam) {
-      setKeyword(keywordParam);
-      setSearchKeyword(keywordParam);
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setKeyword(keywordParam || '');
+    setSearchKeyword(keywordParam || '');
+    setPage(0);
   }, [searchParams]);
 
   const handleSearch = () => {
@@ -82,11 +76,11 @@ function ProductsContent() {
   const parseUtcToLocalString = (iso?: string) => {
     if (!iso) return '-';
     try {
-      // If iso already contains timezone info, use it. Otherwise treat as UTC by appending 'Z'.
+      // If iso already contains timezone info, use it. otherwise treat as UTC by appending 'Z'.
       const normalized = /[zZ]|[+-]\d{2}:?\d{2}/.test(iso) ? iso : `${iso}Z`;
       const d = new Date(normalized);
       return d.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
+    } catch {
       return iso;
     }
   };
@@ -138,7 +132,7 @@ function ProductsContent() {
               <Select
                 value={sortBy}
                 onChange={(e) => {
-                  setSortBy(e.target.value as any);
+                  setSortBy(e.target.value as 'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID');
                   setPage(0);
                 }}
                 label="정렬"
@@ -163,26 +157,24 @@ function ProductsContent() {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
               {productsData?.contents.map((product) => {
+                // Handle backend field name variations
+                const productData = product as unknown as Record<string, unknown>;
+                const auctionData = productData.auction as unknown as Record<string, unknown>;
+
                 const rawCurrentBid =
-                  // prefer backend search field
-                  (product as any).currentBidPrice ??
-                  // fallback to other possible field names
-                  (product as any).currentBid ??
-                  (product as any).auction?.currentBidPrice ??
-                  (product as any).auction?.currentBid ??
+                  (productData.currentBidPrice as number) ??
+                  (productData.currentBid as number) ??
+                  (auctionData?.currentBidPrice as number) ??
+                  (auctionData?.currentBid as number) ??
                   null;
 
                 const displayCurrentBid = (() => {
                   if (rawCurrentBid == null) return null;
-                  const n = typeof rawCurrentBid === 'number' ? rawCurrentBid : Number(rawCurrentBid);
+                  const n = Number(rawCurrentBid);
                   return Number.isFinite(n) ? n : null;
                 })();
 
-                // debug: trace raw vs normalized current bid for this product
-                if (typeof window !== 'undefined') {
-                  // eslint-disable-next-line no-console
-                  console.debug('product current bid debug', { id: product.id, rawCurrentBid, displayCurrentBid });
-                }
+                const imageUrl = (productData.image as string) || product.imageUrl || '/placeholder.png';
 
                 return (
                   <Card
@@ -192,10 +184,11 @@ function ProductsContent() {
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      transition: 'transform 200ms ease, box-shadow 200ms ease',
+                      transition: 'all 200ms ease',
+                      boxShadow: 1,
                       '&:hover': {
                         transform: 'translateY(-6px)',
-                        boxShadow: (theme) => theme.shadows[6],
+                        boxShadow: 6,
                       },
                       borderRadius: 2,
                       overflow: 'hidden',
@@ -206,8 +199,7 @@ function ProductsContent() {
                       <CardMedia
                         component="img"
                         height="180"
-                        // backend returns `image` (S3 URL)
-                        image={product.image || product.imageUrl || '/placeholder.png'}
+                        image={imageUrl}
                         alt={product.name}
                         sx={{ width: '100%', height: 180, objectFit: 'cover' }}
                       />

@@ -4,4 +4,10 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface ApiErrorResponse {
+  success: boolean;
+  message: string;
+  code?: string;
+}
+
 export default ApiResponse;

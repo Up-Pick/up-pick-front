@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Container,
   Box,
@@ -11,14 +11,16 @@ import {
   Chip,
   Divider,
   Alert,
-  Grid,
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi } from '@/lib/api/products';
 import { auctionsApi } from '@/lib/api/auctions';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Header from '@/components/Layout/Header';
+import type { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/lib/types/api';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -50,7 +52,7 @@ export default function ProductDetailPage() {
     try {
       const d = parseUtcToDate(iso);
       return d.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
+    } catch {
       return iso;
     }
   };
@@ -59,12 +61,10 @@ export default function ProductDetailPage() {
   const bidMutation = useMutation({
     mutationFn: async (payload: { auctionId: number; biddingPrice: number }) => {
       const { auctionId, biddingPrice } = payload;
-      console.debug('bidMutation.mutationFn called', { biddingPrice, auctionId });
       if (!auctionId) throw new Error('auctionId is missing');
       return auctionsApi.placeBid(auctionId, { biddingPrice });
     },
     onSuccess: () => {
-      console.debug('bidMutation onSuccess');
       setSuccess('입찰이 완료되었습니다!');
       setError('');
       setBidAmount('');
@@ -72,15 +72,14 @@ export default function ProductDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['product', productId] });
       queryClient.invalidateQueries({ queryKey: ['credit'] });
     },
-    onError: (err: any) => {
-      console.error('bidMutation onError', err);
-      setError(err.response?.data?.message || err.message || '입찰에 실패했습니다.');
+    onError: (err) => {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      setError(axiosError.response?.data?.message || axiosError.message || '입찰에 실패했습니다.');
       setSuccess('');
     },
   });
 
   const handleBid = () => {
-    console.debug('handleBid called', { isAuthenticated, productExists: !!product, auctionRaw: product?.auction, bidAmount });
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -97,24 +96,33 @@ export default function ProductDetailPage() {
       return;
     }
 
-    // DEBUG: log full product object to inspect shape
-    console.debug('product payload', product);
-
     // resolve auctionId: try several possible shapes returned by backend
-    let resolvedAuctionId = (product as any)?.auction?.auctionId
-      ?? (product as any)?.auctionId
-      ?? (product as any)?.auction?.id
-      ?? (product as any)?.auction_id
+    const productData = product as unknown as Record<string, unknown>;
+    const auctionData = productData?.auction as unknown as Record<string, unknown>;
+    let resolvedAuctionId = (auctionData?.auctionId as number)
+      ?? (productData?.auctionId as number)
+      ?? (auctionData?.id as number)
+      ?? (auctionData?.auction_id as number)
       ?? undefined;
     // Fallback to productId if backend expects productId for auction endpoint
     if (!resolvedAuctionId) {
-      console.debug('auctionId not found on product, falling back to productId', { productId });
       resolvedAuctionId = productId;
     }
 
-    console.debug('mutating bid', { amount, resolvedAuctionId });
     bidMutation.mutate({ auctionId: resolvedAuctionId, biddingPrice: amount });
   };
+
+  // 기존 auctionEndDate 계산을 UTC-aware로 변경
+  const auctionEndDate = useMemo(() => {
+    if (!product) return new Date(NaN);
+    return parseUtcToDate(product.endAt);
+  }, [product]);
+
+  const isExpired = useMemo(() => {
+    if (!product) return false;
+    const now = Date.now();
+    return auctionEndDate.getTime() <= now;
+  }, [auctionEndDate, product]);
 
   if (isLoading) {
     return (
@@ -138,10 +146,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  // 기존 auctionEndDate 계산을 UTC-aware로 변경
-  const auctionEndDate = parseUtcToDate(product.endAt);
-  const isExpired = auctionEndDate.getTime() <= Date.now();
-
   return (
     <>
       <Header />
@@ -151,7 +155,7 @@ export default function ProductDetailPage() {
           <Box sx={{ flex: 1 }}>
             <Box
               component="img"
-              src={(product as any).image || product.imageUrl || '/placeholder.png'}
+              src={((product as unknown as Record<string, unknown>).image as string) || product.imageUrl || '/placeholder.png'}
               alt={product.name}
               sx={{
                 width: '100%',
@@ -166,13 +170,21 @@ export default function ProductDetailPage() {
           {/* 상품 정보 및 입찰 */}
           <Box sx={{ flex: 1 }}>
             <Paper elevation={2} sx={{ p: 3 }}>
-              <Typography variant="h4" component="h1" gutterBottom>
-                {product.name}
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 2 }}>
+                <Typography variant="h4" component="h1">
+                  {product.name}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+                  <VisibilityIcon sx={{ fontSize: 20 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {product.viewCount.toLocaleString()}
+                  </Typography>
+                </Box>
+              </Box>
 
               <Box sx={{ mb: 2 }}>
                 <Chip
-                  label={`${product.categoryName}`}
+                  label={`${product.category || '상품'}`}
                   color="primary"
                   variant="outlined"
                   sx={{ mr: 1 }}

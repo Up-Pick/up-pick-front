@@ -16,7 +16,6 @@ import {
 import {
   Notifications as NotificationsIcon,
   AccountCircle,
-  ShoppingCart,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';

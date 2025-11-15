@@ -14,6 +14,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Header from '@/components/Layout/Header';
+import type { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/lib/types/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,8 +42,9 @@ export default function LoginPage() {
     try {
       await login(formData);
       router.push('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || '로그인에 실패했습니다.');
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      setError(axiosError.response?.data?.message || '로그인에 실패했습니다.');
     } finally {
       setLoading(false);
     }

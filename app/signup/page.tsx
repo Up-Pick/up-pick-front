@@ -14,6 +14,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Header from '@/components/Layout/Header';
+import type { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/lib/types/api';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -54,8 +56,9 @@ export default function SignupPage() {
       });
       alert('회원가입이 완료되었습니다. 로그인해주세요.');
       router.push('/login');
-    } catch (err: any) {
-      const message = err.response?.data?.message || '회원가입에 실패했습니다.';
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      const message = axiosError.response?.data?.message || '회원가입에 실패했습니다.';
       setError(message);
     } finally {
       setLoading(false);

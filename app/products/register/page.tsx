@@ -19,6 +19,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { productsApi } from '@/lib/api/products';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Header from '@/components/Layout/Header';
+import type { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/lib/types/api';
 
 export default function ProductRegisterPage() {
   const router = useRouter();
@@ -55,8 +57,9 @@ export default function ProductRegisterPage() {
       alert('상품이 등록되었습니다!');
       router.push('/my-page');
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.message || '상품 등록에 실패했습니다.');
+    onError: (err) => {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      setError(axiosError.response?.data?.message || '상품 등록에 실패했습니다.');
     },
   });
 

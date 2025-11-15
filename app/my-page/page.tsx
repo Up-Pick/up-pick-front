@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogActions,
   Alert,
-  Grid,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -26,6 +25,9 @@ import { productsApi } from '@/lib/api/products';
 import { creditApi } from '@/lib/api/credit';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import Header from '@/components/Layout/Header';
+import type { AxiosError } from 'axios';
+import type { ApiErrorResponse } from '@/lib/types/api';
+import type { StandardPageResponse, ProductSimpleInfo } from '@/lib/types/product';
 
 export default function MyPage() {
   const router = useRouter();
@@ -85,8 +87,9 @@ export default function MyPage() {
       setError('');
       queryClient.invalidateQueries({ queryKey: ['credit'] });
     },
-    onError: (err: unknown) => {
-      const errorMessage = (err as any).response?.data?.message || '충전에 실패했습니다.';
+    onError: (err) => {
+      const axiosError = err as AxiosError<ApiErrorResponse>;
+      const errorMessage = axiosError.response?.data?.message || '충전에 실패했습니다.';
       setError(errorMessage);
     },
   });
@@ -100,7 +103,7 @@ export default function MyPage() {
     chargeMutation.mutate({ amount });
   };
 
-  const renderProductList = (products: any) => {
+  const renderProductList = (products: StandardPageResponse<ProductSimpleInfo> | undefined) => {
     if (!products || products.contents.length === 0) {
       return (
         <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -111,31 +114,35 @@ export default function MyPage() {
 
     return (
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
-        {products.contents.map((product: any) => (
-          <Card
-            key={product.id}
-            sx={{ cursor: 'pointer' }}
-            onClick={() => router.push(`/products/${product.id}`)}
-          >
-            <CardMedia
-              component="img"
-              height="180"
-              image={product.image || '/placeholder.png'}
-              alt={product.name}
-            />
-            <CardContent>
-              <Typography variant="h6" gutterBottom noWrap>
-                {product.name}
-              </Typography>
-              <Typography variant="h6" color="primary">
-                {product.currentBid ? `${product.currentBid.toLocaleString()} 원` : '입찰 없음'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
+        {products.contents.map((product) => {
+          const productImage = ((product as unknown as Record<string, unknown>).image as string) || product.imageUrl || '/placeholder.png';
+          const currentBid = product.currentBid ?? 0;
+          return (
+            <Card
+              key={product.id}
+              sx={{ cursor: 'pointer' }}
+              onClick={() => router.push(`/products/${product.id}`)}
+            >
+              <CardMedia
+                component="img"
+                height="180"
+                image={productImage}
+                alt={product.name}
+              />
+              <CardContent>
+                <Typography variant="h6" gutterBottom noWrap>
+                  {product.name}
+                </Typography>
+                <Typography variant="h6" color="primary">
+                  {currentBid ? `${currentBid.toLocaleString()} 원` : '입찰 없음'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
+                </Typography>
+              </CardContent>
+            </Card>
+          );
+        })}
       </Box>
     );
   };
