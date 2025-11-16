@@ -14,9 +14,14 @@ export const productsApi = {
   searchProducts: async (
     params: SearchProductRequest
   ): Promise<StandardPageResponse<ProductSimpleInfo>> => {
+    // undefined 값 제거
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, value]) => value !== undefined)
+    );
+
     const response = await axiosInstance.post<ApiResponse<StandardPageResponse<ProductSimpleInfo>>>(
       '/auction/api/v1/products/search',
-      params
+      cleanParams
     );
     return response.data.data;
   },

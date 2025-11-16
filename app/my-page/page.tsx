@@ -133,9 +133,11 @@ export default function MyPage() {
                 <Typography variant="h6" gutterBottom noWrap>
                   {product.name}
                 </Typography>
-                <Typography variant="h6" color="primary">
-                  {currentBid ? `${currentBid.toLocaleString()} 원` : '입찰 없음'}
-                </Typography>
+                {currentBid > 0 && (
+                  <Typography variant="h6" color="primary">
+                    {currentBid.toLocaleString()} 원
+                  </Typography>
+                )}
                 <Typography variant="body2" color="text.secondary">
                   마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
                 </Typography>

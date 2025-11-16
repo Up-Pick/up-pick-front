@@ -27,7 +27,7 @@ function ProductsContent() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get('keyword') || '');
   const [page, setPage] = useState(0);
-  const [sortBy, setSortBy] = useState<'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID'>('REGISTERED_AT_DESC');
+  const [sortBy, setSortBy] = useState<'REGISTERED_AT_DESC' | 'END_AT_DESC' | 'CURRENT_BID_DESC'>('REGISTERED_AT_DESC');
   const [categoryId, setCategoryId] = useState<number | undefined>();
 
   // 카테고리 목록 조회
@@ -53,7 +53,7 @@ function ProductsContent() {
         keyword: searchKeyword || undefined,
         page,
         size: 12,
-        sortBy: sortBy as 'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID',
+        sortBy: sortBy as 'REGISTERED_AT_DESC' | 'END_AT_DESC' | 'CURRENT_BID_DESC',
         categoryId,
       };
       return productsApi.searchProducts(params);
@@ -132,14 +132,14 @@ function ProductsContent() {
               <Select
                 value={sortBy}
                 onChange={(e) => {
-                  setSortBy(e.target.value as 'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID');
+                  setSortBy(e.target.value as 'REGISTERED_AT_DESC' | 'END_AT_DESC' | 'CURRENT_BID_DESC');
                   setPage(0);
                 }}
                 label="정렬"
               >
                 <MenuItem value="REGISTERED_AT_DESC">최신순</MenuItem>
-                <MenuItem value="END_AT">마감늦은순</MenuItem>
-                <MenuItem value="CURRENT_BID">가격순</MenuItem>
+                <MenuItem value="END_AT_DESC">마감늦은순</MenuItem>
+                <MenuItem value="CURRENT_BID_DESC">가격순</MenuItem>
               </Select>
             </FormControl>
             <Button variant="contained" onClick={handleSearch} sx={{ height: 56, minWidth: { xs: '100%', md: 100 } }}>
@@ -156,7 +156,16 @@ function ProductsContent() {
         ) : (
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
-              {productsData?.contents.map((product) => {
+              {productsData?.contents.filter((product) => {
+                // 마감 날짜가 지나지 않은 상품만 표시
+                if (product.endAt) {
+                  const endAtString = product.endAt.endsWith('Z') ? product.endAt : `${product.endAt}Z`;
+                  const endDate = new Date(endAtString);
+                  const now = new Date();
+                  return endDate > now;
+                }
+                return true;
+              }).map((product) => {
                 // Handle backend field name variations
                 const productData = product as unknown as Record<string, unknown>;
                 const auctionData = productData.auction as unknown as Record<string, unknown>;

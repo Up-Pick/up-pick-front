@@ -25,7 +25,7 @@ import { notificationsApi } from '@/lib/api/notifications';
 
 export default function Header() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, nickname, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // 크레딧 조회
@@ -115,6 +115,13 @@ export default function Header() {
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
+
+                {/* 닉네임 표시 */}
+                {nickname && (
+                  <Typography variant="body1" sx={{ mr: 1 }}>
+                    {nickname}
+                  </Typography>
+                )}
 
                 {/* 프로필 메뉴 */}
                 <IconButton

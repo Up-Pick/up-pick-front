@@ -54,7 +54,7 @@ export interface SearchProductRequest {
   categoryId?: number;
   page?: number;
   size?: number;
-  sortBy?: 'REGISTERED_AT_DESC' | 'END_AT' | 'CURRENT_BID';
+  sortBy?: 'REGISTERED_AT_DESC' | 'END_AT_DESC' | 'CURRENT_BID_DESC';
   endAtFrom?: string;
 }
 
