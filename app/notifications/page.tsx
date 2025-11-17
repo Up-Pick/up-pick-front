@@ -75,7 +75,13 @@ export default function NotificationsPage() {
                               {notification.message}
                             </Typography>
                             <Typography variant="caption" component="div" color="text.secondary">
-                              {new Date(notification.notifiedAt).toLocaleString('ko-KR')}
+                              {new Date(notification.notifiedAt).toLocaleString('ko-KR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </Typography>
                           </Box>
                         }

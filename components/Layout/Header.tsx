@@ -40,7 +40,6 @@ export default function Header() {
     queryKey: ['notifications'],
     queryFn: notificationsApi.getUnreadNotifications,
     enabled: isAuthenticated,
-    refetchInterval: 30000, // 30초마다 갱신
   });
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
