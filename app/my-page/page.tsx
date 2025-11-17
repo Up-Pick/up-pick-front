@@ -103,7 +103,7 @@ export default function MyPage() {
     chargeMutation.mutate({ amount });
   };
 
-  const renderProductList = (products: StandardPageResponse<ProductSimpleInfo> | undefined) => {
+  const renderProductList = (products: StandardPageResponse<ProductSimpleInfo> | undefined, isPurchasedTab = false) => {
     if (!products || products.contents.length === 0) {
       return (
         <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -115,8 +115,11 @@ export default function MyPage() {
     return (
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 3 }}>
         {products.contents.map((product) => {
-          const productImage = ((product as unknown as Record<string, unknown>).image as string) || product.imageUrl || '/placeholder.png';
+          const productData = product as unknown as Record<string, unknown>;
+          const productImage = (productData.image as string) || product.imageUrl || '/placeholder.png';
           const currentBid = product.currentBid ?? 0;
+          const buyAt = productData.buyAt as string | undefined;
+
           return (
             <Card
               key={product.id}
@@ -139,7 +142,9 @@ export default function MyPage() {
                   </Typography>
                 )}
                 <Typography variant="body2" color="text.secondary">
-                  마감: {new Date(product.endAt).toLocaleDateString('ko-KR')}
+                  {isPurchasedTab && buyAt
+                    ? `구매일: ${new Date(buyAt).toLocaleDateString('ko-KR')}`
+                    : `마감: ${new Date(product.endAt).toLocaleDateString('ko-KR')}`}
                 </Typography>
               </CardContent>
             </Card>
@@ -197,7 +202,7 @@ export default function MyPage() {
             {tabValue === 0 && renderProductList(sellingProducts)}
             {tabValue === 1 && renderProductList(soldProducts)}
             {tabValue === 2 && renderProductList(biddingProducts)}
-            {tabValue === 3 && renderProductList(purchasedProducts)}
+            {tabValue === 3 && renderProductList(purchasedProducts, true)}
           </Box>
         </Paper>
       </Container>
