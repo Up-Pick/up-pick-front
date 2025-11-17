@@ -220,7 +220,7 @@ export default function ProductDetailPage() {
                   현재가
                 </Typography>
                 <Typography variant="h4" color="primary">
-                  {(product.currentBid || product.minPrice).toLocaleString()} 원
+                  {product.currentBid ? `${product.currentBid.toLocaleString()} 원` : '없음'}
                 </Typography>
               </Box>
 
@@ -262,7 +262,7 @@ export default function ProductDetailPage() {
                     label="입찰 금액"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={`${((product.currentBid || product.minPrice) + 1000).toLocaleString()}원 이상`}
+                    placeholder={`${((product.currentBid || product.minPrice)).toLocaleString()}원 이상`}
                     sx={{ mb: 2 }}
                   />
 

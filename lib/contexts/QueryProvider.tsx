@@ -9,7 +9,7 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1분
+            staleTime: 0, // 캐싱 비활성화 (백엔드에서 캐싱 처리)
             retry: 1,
           },
         },
