@@ -91,8 +91,8 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (product && amount <= (product.currentBid || product.minPrice)) {
-      setError(`현재가(${(product.currentBid || product.minPrice).toLocaleString()}원)보다 높은 금액을 입력해주세요.`);
+    if (product && amount < (product.currentBid || product.minPrice)) {
+      setError(`현재가(${(product.currentBid || product.minPrice).toLocaleString()}원) 이상의 금액을 입력해주세요.`);
       return;
     }
 
@@ -219,8 +219,8 @@ export default function ProductDetailPage() {
                 <Typography variant="body2" color="text.secondary">
                   현재가
                 </Typography>
-                <Typography variant="h4" color="primary">
-                  {product.currentBid ? `${product.currentBid.toLocaleString()} 원` : '없음'}
+                <Typography variant="h6">
+                  {product.currentBid ? `${product.currentBid.toLocaleString()} 원` : '-'}
                 </Typography>
               </Box>
 
